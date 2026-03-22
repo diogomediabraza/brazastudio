@@ -5,55 +5,54 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const IDEOGRAM_KEY = process.env.IDEOGRAM_API_KEY;
-  if (!IDEOGRAM_KEY) {
-    return res.status(200).json({ url: null, error: 'IDEOGRAM_API_KEY not configured' });
+  const GEMINI_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_KEY) {
+    return res.status(200).json({ url: null, error: 'GEMINI_API_KEY not configured' });
   }
 
   try {
-    const { prompt, size, style } = req.body;
+    const { prompt, size } = req.body;
 
-    // Map size to Ideogram aspect ratio
     const aspectMap = {
-      '1080x1080': 'ASPECT_1_1',
-      '1080x1350': 'ASPECT_4_5',
-      '1080x1920': 'ASPECT_9_16',
-      '1200x628':  'ASPECT_16_9'
+      '1080x1080': '1:1',
+      '1080x1350': '4:5',
+      '1080x1920': '9:16',
+      '1200x628':  '16:9'
     };
-    const aspectRatio = aspectMap[size] || 'ASPECT_1_1';
+    const aspectRatio = aspectMap[size] || '1:1';
 
-    // Map style to Ideogram style type
-    const styleMap = {
-      'minimalista': 'DESIGN',
-      'bold': 'DESIGN',
-      'elegante': 'GENERAL',
-      'colorido': 'VIBRANT',
-      'dark': 'DESIGN',
-      'moderno': 'DESIGN'
-    };
-    const styleType = styleMap[style] || 'DESIGN';
-
-    const response = await fetch('https://api.ideogram.ai/generate', {
-      method: 'POST',
-      headers: {
-        'Api-Key': IDEOGRAM_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        image_request: {
-          prompt: prompt,
-          aspect_ratio: aspectRatio,
-          model: 'V_2',
-          style_type: styleType,
-          magic_prompt_option: 'OFF'
-        }
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instances: [{ prompt }],
+          parameters: {
+            sampleCount: 1,
+            aspectRatio,
+            safetyFilterLevel: 'block_few',
+            personGeneration: 'allow_adult'
+          }
+        })
+      }
+    );
 
     const data = await response.json();
-    const imageUrl = data.data?.[0]?.url || null;
 
-    return res.status(200).json({ url: imageUrl, prompt });
+    if (data.error) {
+      return res.status(200).json({ url: null, error: data.error.message });
+    }
+
+    const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+    const mimeType = data.predictions?.[0]?.mimeType || 'image/png';
+
+    if (!b64) {
+      return res.status(200).json({ url: null, error: 'No image returned' });
+    }
+
+    return res.status(200).json({ url: `data:${mimeType};base64,${b64}`, prompt });
+
   } catch (error) {
     return res.status(500).json({ error: error.message, url: null });
   }

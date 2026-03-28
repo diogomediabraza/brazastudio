@@ -21,26 +21,6 @@ export default async function handler(req, res) {
     };
     const aspectRatio = aspectMap[size] || '1:1';
 
-    const negativePrompt = [
-      'amateur photography',
-      'blurry or out of focus',
-      'distorted faces',
-      'warped or malformed hands',
-      'visible AI generation artifacts',
-      'low resolution',
-      'stock photo cliches',
-      'bad composition',
-      'lens geometric distortion',
-      'text rendering errors',
-      'watermark',
-      'overexposed or underexposed',
-      'noise and grain',
-      'unrealistic skin tones',
-      'plastic or waxy textures',
-      'generic corporate look',
-      'busy clutered background',
-      'wrong perspective'
-    ].join(', ');
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_KEY}`,
@@ -52,7 +32,6 @@ export default async function handler(req, res) {
           parameters: {
             sampleCount: 1,
             aspectRatio,
-            negativePrompt,
             safetyFilterLevel: 'block_few',
             personGeneration: 'allow_adult'
           }

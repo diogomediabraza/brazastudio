@@ -3109,6 +3109,36 @@ function storiesReset(){
 }
 
 // ── DIRETOR DE ARTE ──
+
+// Direcções de arte por estilo — referências de campanhas e escolas de design reais
+const STYLE_DIRECTIONS={
+  'minimalista':'Swiss International Typographic Style. Muji-level restraint. Single isolated hero element centered in generous negative space. Precise invisible grid. Matte clean background. Rule of thirds. Helvetica-era aesthetic. Every element deliberate, nothing decorative.',
+  'bold':'Wieden+Kennedy advertising power. Nike campaign boldness. Extreme contrast ratio between foreground and background. Strong dynamic diagonal composition. Powerful typographic visual hierarchy. Stark dramatic chiaroscuro shadows. David Carson raw graphic energy. Unapologetic visual impact.',
+  'elegante':'Vogue Italia editorial direction. Tom Ford advertising photography. Luxury fashion house visual language. Muted warm natural tones — champagne, ivory, warm grey. Soft Rembrandt three-quarter lighting. Fine micro-detail craftsmanship. Premium tactile surface textures. Negative space used as sophistication signal.',
+  'colorido':'Pentagram studio vibrancy. Sagmeister & Walsh color theory. Bold complementary color blocking with optical tension. Saturated but harmonious palette. Geometric graphic shape language. Joyful energetic movement. Spotify campaign chromatic confidence. Colors that command attention.',
+  'dark':'CHANEL Nº5 noir campaign direction. Deep dramatic shadow volumes. Single focused theatrical light beam cutting through darkness. Matte dark textured backgrounds — brushed steel, obsidian, matte carbon. Metallic gold or silver accent elements. Cinematic depth. Givenchy dark luxury mood.',
+  'moderno':'Teenage Engineering industrial product photography. Apple Studio aesthetic. Geometric precision in every element. Contemporary design system visual language. Technology-forward clean composition. Figma design sensibility applied to photography. Minimal but never cold — warm neutrals with precise accent color.'
+};
+
+// System prompt do Director de Arte — nível agência internacional
+const SYSTEM_ARTE=`You are the Senior Art Director at a world-class advertising agency (think BBDO Paris, Wieden+Kennedy Amsterdam, Ogilvy London). You specialize exclusively in writing Google Imagen 3 generation prompts that produce images indistinguishable from professional studio photography and award-winning graphic design.
+
+Every prompt you write MUST include ALL of these elements:
+
+1. CAMERA & LIGHTING: Specific professional gear ("Phase One IQ4 150MP, 80mm Schneider lens, f/2.2, large octabox key at 45°, V-flat silver fill") or precise natural lighting ("soft overcast window light, silver reflector fill, color-graded Kodak Portra 400 emulsion look"). Never generic lighting.
+
+2. COMPOSITION DIRECTION: Explicitly state the compositional approach — rule of thirds with subject in left third, golden spiral leading to product, centered symmetry with breathing negative space. Describe the visual hierarchy: what the eye hits first, second, third.
+
+3. STYLE DNA: Name a specific advertising campaign, photographer, or design school that defines the aesthetic. ("In the style of Erik Kessels raw documentary campaign" or "Annie Leibovitz Vanity Fair editorial lighting" or "Stefan Sagmeister typographic brutalism")
+
+4. COLOR PRECISION: Never say "orange" — say "warm amber #C85500 as primary accent, deep charcoal #1A1A1A as dominant background field, off-white #F5F0E8 for text breathing zone, no more than 3 color values in the frame."
+
+5. QUALITY ANCHORS: End with "advertising campaign quality, D&AD Pencil award-winning, published in Communication Arts annual, featured in Graphis magazine, $80,000 production value."
+
+6. ANTI-AI GUARD (CRITICAL — always embed in prompt): "photorealistic perfection, no distorted facial features, no warped hands or fingers, no amateur compositional choices, no stock photo visual clichés, no visible AI generation artifacts, no lens geometric distortion, no font rendering errors, technically flawless execution."
+
+Output ONLY the raw Imagen 3 prompt in English. Zero explanation. Zero markdown. Zero meta-commentary. Just the dense, precise, professional prompt. 150-220 words.`;
+
 function setFormato(el,size,label,platform){document.querySelectorAll('.formato-card').forEach(c=>c.classList.remove('active'));el.classList.add('active');const ratio=parseFloat(el.dataset.ratio)||1;arteFormato={size,label,platform,ratio};}
 function setEstilo(el,estilo){document.querySelectorAll('.estilo-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');arteEstilo=estilo;}
 function updateArtePanel(){const an=document.getElementById('arteBrandName');if(an)an.textContent=brand.nome||'Não configurada';const ai=document.getElementById('arteBrandInfo');if(ai)ai.textContent=brand.segmento||'Configure em A Minha Marca';}
@@ -3121,8 +3151,9 @@ async function gerarArte(){
   showArtePipeline();
   try{
     updatePipelineStep(0,'active','A analisar marca...');
-    const promptRes=await callAPI([{role:'user',content:'Cria um prompt para o Google Imagen gerar uma arte para redes sociais.\nMarca: '+(brand.nome||'geral')+'\nSegmento: '+(brand.segmento||'geral')+'\nTom: '+(brand.tom||'profissional')+'\nCor principal: '+(brand.cor1||'#FF5500')+'\nEstilo: '+arteEstilo+'\nFormato: '+arteFormato.label+' ('+arteFormato.size+')\nTexto: "'+texto+'"'+(subtexto?'\nSubtexto: "'+subtexto+'"':'')+'\n\nResponde APENAS com o prompt em inglês. Máximo 150 palavras.'}],null,400);
-    updatePipelineStep(0,'done','Prompt gerado ✓');
+    const arteUserMsg='=== BRAND BRIEF ===\nBrand: '+(brand.nome||'Premium Brand')+'\nIndustry/Segment: '+(brand.segmento||'general')+'\nBrand personality & tone: '+(brand.tom||'professional, trustworthy, modern')+'\nPrimary brand color: '+(brand.cor1||'#FF5500')+'\nSecondary brand color: '+(brand.cor2||'#1A1A1A')+'\nTarget audience: '+(brand.publico||'professionals 25–45')+'\nBrand value keywords: '+(palavrasPos.length?palavrasPos.join(', '):'quality, impact, trust, excellence')+'\nConcepts to avoid: '+(palavrasNeg.length?palavrasNeg.join(', '):'generic, cheap, cluttered, corporate cliché')+(brand.refs?'\nVisual references & inspiration: '+brand.refs:'')+(brand.estilo?'\nBrand visual identity: '+brand.estilo:'')+(brand.proposta?'\nBrand proposition: '+brand.proposta:'')+(brand.bio?'\nBrand story: '+brand.bio:'')+'\n\n=== ART DIRECTION ===\nRequested visual style: '+arteEstilo+'\nStyle aesthetic directive: '+(STYLE_DIRECTIONS[arteEstilo]||STYLE_DIRECTIONS['minimalista'])+'\nCanvas format: '+arteFormato.label+' — exact dimensions '+arteFormato.size+'px — platform: '+arteFormato.platform+'\nComposition MUST be optimized for this specific aspect ratio. No important elements near edges. Safe zone respected.\n\n=== CONTENT TO FEATURE ===\nMain headline/message (must be featured prominently): "'+texto+'"'+(subtexto?'\nSupporting tagline/body text: "'+subtexto+'"':'')+'\n\n=== FINAL DIRECTIVE ===\nThis image will be used in a real marketing campaign. It must look like it was produced in a €60,000 professional studio shoot. Indistinguishable from top-tier advertising photography. No AI aesthetics whatsoever. Think: D&AD shortlist, Communication Arts annual, Cannes Lions entry.\n\nWrite the Imagen 3 prompt now.';
+    const promptRes=await callAPI([{role:'user',content:arteUserMsg}],SYSTEM_ARTE,700);
+        updatePipelineStep(0,'done','Prompt gerado ✓');
     updatePipelineStep(1,'active','A gerar arte...');
     let imageUrl=null;
     try{const ar=await fetch('/api/arte',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptRes,size:arteFormato.size,style:arteEstilo})});const ad=await ar.json();imageUrl=ad.url||null;updatePipelineStep(1,imageUrl?'done':'done',imageUrl?'Arte gerada ✓':'API key necessária');if(imageUrl)arteImageUrl=imageUrl;}catch(e){updatePipelineStep(1,'done','Erro na API');}

@@ -38,12 +38,12 @@ export default async function handler(req, res) {
       'unrealistic skin tones',
       'plastic or waxy textures',
       'generic corporate look',
-      'busy cluttered background',
+      'busy clutered background',
       'wrong perspective'
     ].join(', ');
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

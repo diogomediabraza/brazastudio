@@ -2794,7 +2794,7 @@ let socialEtapa=1,socialDiagnostico={};
 let vendasFase=1,vendasPlano=null;
 let storiesTipo='engajamento',storiesData=null,viralData=null;
 let arteFormato={size:'1080x1080',label:'Post Quadrado',platform:'Instagram Feed',ratio:1};
-let arteEstilo='minimalista',arteRunning=false,arteImageUrl=null;
+let arteEstilo='minimalista',arteRunning=false,arteImageUrl=null,arteProvider='';
 
 // ── UTILS ──
 function showToast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
@@ -3156,7 +3156,7 @@ async function gerarArte(){
         updatePipelineStep(0,'done','Prompt gerado ✓');
     updatePipelineStep(1,'active','A gerar arte...');
     let imageUrl=null;
-    try{const ar=await fetch('/api/arte',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptRes,size:arteFormato.size,style:arteEstilo})});const ad=await ar.json();imageUrl=ad.url||null;updatePipelineStep(1,imageUrl?'done':'done',imageUrl?'Arte gerada ✓':'API key necessária');if(imageUrl)arteImageUrl=imageUrl;}catch(e){updatePipelineStep(1,'done','Erro na API');}
+    try{const ar=await fetch('/api/arte',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptRes,size:arteFormato.size,style:arteEstilo})});const ad=await ar.json();imageUrl=ad.url||null;updatePipelineStep(1,imageUrl?'done':'done',imageUrl?'Arte gerada ✓':'API key necessária');if(imageUrl){arteImageUrl=imageUrl;arteProvider=ad.provider||'';}catch(e){updatePipelineStep(1,'done','Erro na API');}
     let stockImages=[];
     if(fundo==='stock'){updatePipelineStep(2,'active','A buscar imagens...');try{const sr=await fetch('/api/unsplash?q='+encodeURIComponent(unsplashQ));const sd=await sr.json();stockImages=sd.results||[];updatePipelineStep(2,'done',stockImages.length+' imagens ✓');}catch(e){updatePipelineStep(2,'done','API key necessária');}}
     else updatePipelineStep(2,'done','Não necessário');
@@ -3178,7 +3178,7 @@ function renderArteResult(imageUrl,stockImages,prompt,texto,subtexto){
   if(stockImages&&stockImages.length){html+='<div style="width:100%;max-width:480px;"><div style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--tm);letter-spacing:2px;margin-bottom:8px;">IMAGENS STOCK — UNSPLASH</div><div class="stock-grid">';stockImages.slice(0,6).forEach(img=>html+='<div class="stock-img" onclick="copyT(\''+img.urls?.regular+'\')"><img src="'+(img.urls?.thumb||'')+'" alt="stock"></div>');html+='</div></div>';}
   area.innerHTML=html;
 }
-function arteDownload(){if(!arteImageUrl){showToast('Sem imagem. Adiciona a GEMINI_API_KEY.');return;}const a=document.createElement('a');a.href=arteImageUrl;a.download='brazastudio-arte-'+Date.now()+'.png';a.target='_blank';a.click();}
+function arteDownload(){if(!arteImageUrl){showToast('Sem imagem. Adiciona a GEMINI_API_KEY.');return;}if(arteImageUrl.startsWith('data:')){const a=document.createElement('a');a.href=arteImageUrl;a.download='brazastudio-arte-'+Date.now()+'.png';a.click();}else{const a=document.createElement('a');a.href=arteImageUrl;a.download='brazastudio-arte-'+Date.now()+'.jpg';a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();document.body.removeChild(a);}
 
 // ── CRIAR ARTE (cross-agent) ──
 function criarArte(contexto,tema){
@@ -5404,7 +5404,7 @@ function renderArteResult(imageUrl,stockImages,prompt,texto,subtexto){
     html+='<div style="width:100%;max-width:'+maxW+'px;">';
     html+='<div class="arte-canvas-wrap" style="max-width:'+maxW+'px;"><img src="'+imageUrl+'" id="arteGenImg" style="width:100%;border-radius:8px;display:block;">';
     html+='<div class="arte-canvas-overlay"><button class="arte-overlay-btn" onclick="arteDownload()">⬇ Descarregar</button><button class="arte-overlay-btn" style="background:var(--card2);" onclick="arteDownload()">Guardar</button></div></div>';
-    html+='<div style="margin-top:10px;font-size:11px;color:var(--tm);font-family:monospace;text-align:center;">'+arteFormato.label+' · '+arteFormato.size+' · '+arteEstilo+'</div>';
+    html+='<div style="margin-top:10px;font-size:11px;color:var(--tm);font-family:monospace;text-align:center;">'+arteFormato.label+' · '+arteFormato.size+(arteProvider?(' · '+({'gemini':'Google Imagen 4 ✶','huggingface':'HuggingFace FLUX ✶','pollinations':'Pollinations FLUX ✶'}[arteProvider]||arteProvider)):'')+'</div>';
     html+='</div>';
   } else {
     const maxW=360;const h=Math.round(maxW/arteFormato.ratio);
@@ -5762,7 +5762,7 @@ function renderArteResult(imageUrl,stockImages,prompt,texto,subtexto){
     html+='<div style="width:100%;max-width:'+maxW+'px;">';
     html+='<div class="arte-canvas-wrap" style="max-width:'+maxW+'px;"><img src="'+imageUrl+'" id="arteGenImg" style="width:100%;border-radius:8px;display:block;">';
     html+='<div class="arte-canvas-overlay"><button class="arte-overlay-btn" onclick="arteDownload()">⬇ Descarregar</button><button class="arte-overlay-btn" style="background:var(--card2);" onclick="arteDownload()">Guardar</button></div></div>';
-    html+='<div style="margin-top:10px;font-size:11px;color:var(--tm);font-family:monospace;text-align:center;">'+arteFormato.label+' · '+arteFormato.size+' · '+arteEstilo+'</div>';
+    html+='<div style="margin-top:10px;font-size:11px;color:var(--tm);font-family:monospace;text-align:center;">'+arteFormato.label+' · '+arteFormato.size+(arteProvider?(' · '+({'gemini':'Google Imagen 4 ✶','huggingface':'HuggingFace FLUX ✶','pollinations':'Pollinations FLUX ✶'}[arteProvider]||arteProvider)):'')+'</div>';
     html+='</div>';
   } else {
     const maxW=360;const h=Math.round(maxW/arteFormato.ratio);

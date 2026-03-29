@@ -3178,7 +3178,7 @@ function renderArteResult(imageUrl,stockImages,prompt,texto,subtexto){
   if(stockImages&&stockImages.length){html+='<div style="width:100%;max-width:480px;"><div style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--tm);letter-spacing:2px;margin-bottom:8px;">IMAGENS STOCK — UNSPLASH</div><div class="stock-grid">';stockImages.slice(0,6).forEach(img=>html+='<div class="stock-img" onclick="copyT(\''+img.urls?.regular+'\')"><img src="'+(img.urls?.thumb||'')+'" alt="stock"></div>');html+='</div></div>';}
   area.innerHTML=html;
 }
-function arteDownload(){if(!arteImageUrl){showToast('Sem imagem. Adiciona a GEMINI_API_KEY.');return;}if(arteImageUrl.startsWith('data:')){const a=document.createElement('a');a.href=arteImageUrl;a.download='brazastudio-arte-'+Date.now()+'.png';a.click();}else{const a=document.createElement('a');a.href=arteImageUrl;a.download='brazastudio-arte-'+Date.now()+'.jpg';a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function arteDownload(){if(!arteImageUrl){showToast('Sem imagem. Adiciona a GEMINI_API_KEY.');return;}if(arteImageUrl.startsWith('data:')){const a=document.createElement('a');a.href=arteImageUrl;a.download='brazastudio-arte-'+Date.now()+'.png';a.click();}else{const a=document.createElement('a');a.href=arteImageUrl;a.download='brazastudio-arte-'+Date.now()+'.jpg';a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();document.body.removeChild(a);}}
 
 // ── CRIAR ARTE (cross-agent) ──
 function criarArte(contexto,tema){

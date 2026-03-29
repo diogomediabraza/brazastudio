@@ -3156,7 +3156,7 @@ async function gerarArte(){
         updatePipelineStep(0,'done','Prompt gerado ✓');
     updatePipelineStep(1,'active','A gerar arte...');
     let imageUrl=null;
-    try{const ar=await fetch('/api/arte',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptRes,size:arteFormato.size,style:arteEstilo})});const ad=await ar.json();imageUrl=ad.url||null;updatePipelineStep(1,imageUrl?'done':'done',imageUrl?'Arte gerada ✓':'API key necessária');if(imageUrl){arteImageUrl=imageUrl;arteProvider=ad.provider||'';}catch(e){updatePipelineStep(1,'done','Erro na API');}
+    try{const ar=await fetch('/api/arte',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptRes,size:arteFormato.size,style:arteEstilo})});const ad=await ar.json();imageUrl=ad.url||null;updatePipelineStep(1,imageUrl?'done':'done',imageUrl?'Arte gerada ✓':'API key necessária');if(imageUrl){arteImageUrl=imageUrl;arteProvider=ad.provider||'';}}catch(e){updatePipelineStep(1,'done','Erro na API');}
     let stockImages=[];
     if(fundo==='stock'){updatePipelineStep(2,'active','A buscar imagens...');try{const sr=await fetch('/api/unsplash?q='+encodeURIComponent(unsplashQ));const sd=await sr.json();stockImages=sd.results||[];updatePipelineStep(2,'done',stockImages.length+' imagens ✓');}catch(e){updatePipelineStep(2,'done','API key necessária');}}
     else updatePipelineStep(2,'done','Não necessário');
